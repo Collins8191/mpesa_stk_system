@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>M-PESA Payment</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .payment-box {
+            background: white;
+            width: 400px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #1b8f3a;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #14752e;
+        }
+
+        .success {
+            margin-top: 20px;
+            padding: 12px;
+            background: #dff5e3;
+            border-radius: 6px;
+        }
+
+        .error {
+            margin-top: 20px;
+            padding: 12px;
+            background: #ffe0e0;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="payment-box">
+
+    <h1>Pay with M-PESA</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" id="pay-button">
+            Pay with M-PESA
+        </button>
+    </form>
+
+    {% if result %}
+    <div class="success">
+        <strong>STK Push Sent Successfully!</strong>
+        <p>{{ result.CustomerMessage }}</p>
+        <p><strong>Checkout ID:</strong> {{ result.CheckoutRequestID }}</p>
+        <p>Please check your phone and complete the M-PESA prompt.</p>
+    </div>
+{% endif %}
+
+{% if payment %}
+    <div id="payment-status" class="success">
+        <h3>⏳ Payment Pending</h3>
+        <p>Waiting for M-PESA confirmation...</p>
+    </div>
+{% endif %}
+
+{% if error %}
+    <div class="error">
+        <strong>Error:</strong>
+        <p>{{ error }}</p>
+    </div>
+{% endif %}
+
+</div>
+
+
+<script>
+    {% if payment %}
+    const checkoutRequestId = "{{ payment.checkout_request_id }}";
+
+    function checkPaymentStatus() {
+        fetch(`/payment-status/${checkoutRequestId}/`)
+            .then(response => response.json())
+            .then(data => {
+
+                const statusBox = document.getElementById("payment-status");
+
+                if (data.status === "Success") {
+                    statusBox.innerHTML = `
+                        <h3>✅ Payment Successful</h3>
+                        <p>${data.result_description}</p>
+                        <p><strong>M-PESA Receipt:</strong> ${data.receipt || "N/A"}</p>
+                    `;
+
+                    statusBox.className = "success";
+
+                } else if (data.status === "Failed") {
+                    statusBox.innerHTML = `
+                        <h3>❌ Payment Failed</h3>
+                        <p>${data.result_description}</p>
+                        <p><strong>Result Code:</strong> ${data.result_code}</p>
+                    `;
+
+                    statusBox.className = "error";
+
+                } else {
+                    statusBox.innerHTML = `
+                        <h3>⏳ Payment Pending</h3>
+                        <p>Waiting for M-PESA confirmation...</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.log("Status check error:", error);
+            });
+    }
+
+    checkPaymentStatus();
+
+    // Check every 3 seconds
+    setInterval(checkPaymentStatus, 3000);
+    {% endif %}
+</script>
+
+
+<script>
+    const paymentForm = document.querySelector("form");
+    const payButton = document.getElementById("pay-button");
+
+    if (paymentForm) {
+        paymentForm.addEventListener("submit", function () {
+
+            payButton.disabled = true;
+
+            payButton.innerHTML = "⏳ Processing...";
+
+            payButton.style.cursor = "not-allowed";
+
+            payButton.style.opacity = "0.7";
+        });
+    }
+</script>
+
+</body>
+</html>

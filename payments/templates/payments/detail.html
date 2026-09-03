@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Transaction Details</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 35px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            gap: 20px;
+        }
+
+        .label {
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        .value {
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .failed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .pending {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 11px 18px;
+            background: #111827;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>💳 Transaction Details</h1>
+</div>
+
+<div class="container">
+
+    {% if error %}
+
+        <div class="card">
+            <h2>❌ {{ error }}</h2>
+
+            <a href="/payment-history/" class="button">
+                Back to Transactions
+            </a>
+        </div>
+
+    {% else %}
+
+        <div class="card">
+
+            <h2>Payment #{{ payment.id }}</h2>
+
+            <div class="row">
+                <span class="label">Phone Number</span>
+                <span class="value">
+                    {{ payment.phone_number }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Amount</span>
+                <span class="value">
+                    <strong>KES {{ payment.amount }}</strong>
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Status</span>
+
+                <span class="value">
+
+                    {% if payment.status == "Success" %}
+                        <span class="success">✅ Successful</span>
+
+                    {% elif payment.status == "Failed" %}
+                        <span class="failed">❌ Failed</span>
+
+                    {% else %}
+                        <span class="pending">⏳ Pending</span>
+                    {% endif %}
+
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">M-PESA Receipt</span>
+
+                <span class="value">
+                    {{ payment.mpesa_receipt_number|default:"Not available" }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Result Code</span>
+
+                <span class="value">
+                    {{ payment.result_code|default:"Not available" }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Result Description</span>
+
+                <span class="value">
+                    {{ payment.result_description|default:"Not available" }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Merchant Request ID</span>
+
+                <span class="value">
+                    {{ payment.merchant_request_id|default:"Not available" }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Checkout Request ID</span>
+
+                <span class="value">
+                    {{ payment.checkout_request_id|default:"Not available" }}
+                </span>
+            </div>
+
+            <div class="row">
+                <span class="label">Created</span>
+
+                <span class="value">
+                    {{ payment.created_at|date:"d M Y, H:i:s" }}
+                </span>
+            </div>
+
+            <a href="/payment-history/" class="button">
+                ← Back to Transactions
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
